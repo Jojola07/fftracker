@@ -1,11 +1,7 @@
 🔥 FF Tracker — Monitor de Progresso de Temporada
 Um web app completo para acompanhar seu progresso nas partidas ranqueadas do Free Fire. Esqueça a sensação de que 3 partidas por dia não rendem nada — aqui você vê cada estrela, cada kill, cada combinação, tudo virando progresso visual.
 
-https://img.shields.io/badge/HTML5-E34F26?style=flat&logo=html5&logoColor=white
-https://img.shields.io/badge/CSS3-1572B6?style=flat&logo=css3&logoColor=white
-https://img.shields.io/badge/JavaScript-F7DF1E?style=flat&logo=javascript&logoColor=black
-https://img.shields.io/badge/license-MIT-green
-https://img.shields.io/badge/dependencies-0-brightgreen
+LINK DE ACESSO: https://ff-track.netlify.app
 
 📖 Sobre o projeto
 O FF Tracker nasceu de uma dor real: o grind diário de partidas ranqueadas é cansativo e a sensação de progresso é quase nula. O app resolve isso transformando cada partida em dados visuais — estrelas subindo, metas batidas, gráficos de constância, projeções de rank — para dar aquele ânimo de continuar.
