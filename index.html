@@ -1,0 +1,1589 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FF Tracker — Progresso de Temporada</title>
+<style>
+/* ============================================================
+   DESIGN TOKENS
+   ============================================================ */
+:root{
+  --bg:#080b12;
+  --bg2:#0e131d;
+  --card:#141b28;
+  --card2:#1a2333;
+  --border:#243044;
+  --border2:#2e3c54;
+  --text:#e9eefb;
+  --muted:#8494b0;
+  --muted2:#5f6e88;
+  --accent:#ff6b1a;
+  --accent2:#ffb020;
+  --green:#22c55e;
+  --red:#ef4444;
+  --blue:#3b82f6;
+  --purple:#a855f7;
+  --gold:#ffc107;
+  --radius:16px;
+  --radius-sm:10px;
+  --shadow:0 10px 40px rgba(0,0,0,.5);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Segoe UI',system-ui,-apple-system,'Inter',Roboto,sans-serif;
+  background:
+    radial-gradient(1200px 600px at 10% -10%, rgba(255,107,26,.10), transparent 60%),
+    radial-gradient(900px 500px at 100% 0%, rgba(59,130,246,.08), transparent 55%),
+    var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+  padding-bottom:80px;
+}
+::-webkit-scrollbar{width:9px;height:9px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:99px}
+::-webkit-scrollbar-thumb:hover{background:#3d4f6d}
+
+/* ============================================================
+   LAYOUT
+   ============================================================ */
+.wrap{max-width:1180px;margin:0 auto;padding:0 16px}
+
+header.top{
+  position:sticky;top:0;z-index:50;
+  backdrop-filter:blur(16px);
+  background:rgba(8,11,18,.82);
+  border-bottom:1px solid var(--border);
+}
+.top-inner{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:16px;padding:14px 0;flex-wrap:wrap;
+}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:20px;letter-spacing:-.5px}
+.logo .mark{
+  width:36px;height:36px;border-radius:10px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  display:grid;place-items:center;font-size:18px;
+  box-shadow:0 6px 20px rgba(255,107,26,.35);
+}
+.logo span{background:linear-gradient(90deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.season-chip{
+  display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted);
+  background:var(--card);border:1px solid var(--border);
+  padding:7px 13px;border-radius:99px;
+}
+.season-chip b{color:var(--accent2);font-weight:700}
+
+nav.tabs{
+  display:flex;gap:6px;padding:0 0 12px;overflow-x:auto;scrollbar-width:none;
+}
+nav.tabs::-webkit-scrollbar{display:none}
+.tab-btn{
+  flex:0 0 auto;
+  background:transparent;border:1px solid transparent;color:var(--muted);
+  padding:9px 16px;border-radius:99px;cursor:pointer;font-size:13.5px;font-weight:600;
+  font-family:inherit;transition:.2s;white-space:nowrap;
+}
+.tab-btn:hover{color:var(--text);background:var(--card)}
+.tab-btn.active{
+  background:linear-gradient(135deg,var(--accent),#ff8a3d);
+  color:#fff;box-shadow:0 6px 22px rgba(255,107,26,.35);
+}
+.panel{display:none;animation:fade .28s ease}
+.panel.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* ============================================================
+   CARDS
+   ============================================================ */
+.card{
+  background:linear-gradient(180deg,var(--card),var(--bg2));
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:20px;margin-bottom:16px;
+  box-shadow:var(--shadow);
+}
+.card h2{
+  font-size:15px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;
+  color:var(--muted);margin-bottom:16px;display:flex;align-items:center;gap:8px;
+}
+.card h2 .ico{font-size:16px}
+.grid{display:grid;gap:16px}
+@media(min-width:860px){
+  .grid.cols-2{grid-template-columns:1fr 1fr}
+  .grid.cols-3{grid-template-columns:repeat(3,1fr)}
+  .grid.rank-layout{grid-template-columns:380px 1fr}
+}
+
+/* ============================================================
+   RANK CARD
+   ============================================================ */
+.rank-card{
+  position:relative;overflow:hidden;
+  background:linear-gradient(150deg,#1b2436,#0d1219);
+  border:1px solid var(--border2);
+  border-radius:var(--radius);
+  padding:26px 22px;text-align:center;
+}
+.rank-card::before{
+  content:'';position:absolute;inset:-40%;
+  background:conic-gradient(from 0deg,transparent,rgba(255,107,26,.16),transparent 40%);
+  animation:spin 9s linear infinite;pointer-events:none;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.rank-card>*{position:relative;z-index:1}
+.rank-emblem{
+  width:120px;height:120px;margin:0 auto 16px;border-radius:26px;
+  background:linear-gradient(150deg,var(--accent),#b23c00);
+  display:grid;place-items:center;line-height:1;
+  box-shadow:0 14px 45px rgba(255,107,26,.4), inset 0 2px 0 rgba(255,255,255,.25);
+  transform:rotate(-4deg);
+  border:2px solid rgba(255,255,255,.15);
+}
+.rank-emblem.tier-prata{background:linear-gradient(150deg,#cbd5e1,#7c8899);box-shadow:0 14px 45px rgba(203,213,225,.28)}
+.rank-emblem.tier-bronze{background:linear-gradient(150deg,#c98b57,#7a4a24);box-shadow:0 14px 45px rgba(201,139,87,.28)}
+.rank-emblem.tier-ouro{background:linear-gradient(150deg,#ffd24a,#b8860b);box-shadow:0 14px 45px rgba(255,210,74,.3)}
+.rank-emblem.tier-platina{background:linear-gradient(150deg,#8ff0e6,#1f8f88);box-shadow:0 14px 45px rgba(143,240,230,.3)}
+.rank-emblem.tier-diamante{background:linear-gradient(150deg,#8fd3ff,#2b6fd8);box-shadow:0 14px 45px rgba(143,211,255,.3)}
+.rank-emblem.tier-mestre,.rank-emblem.tier-mestre-de-honra{background:linear-gradient(150deg,#c084fc,#6d28d9);box-shadow:0 14px 45px rgba(168,85,247,.4)}
+.rank-emblem.tier-elite,.rank-emblem.tier-elite-de-honra{background:linear-gradient(150deg,#ff6b6b,#a8071a);box-shadow:0 14px 45px rgba(255,107,107,.4)}
+.rank-emblem.tier-desafiante{background:linear-gradient(150deg,#ffe066,#ff6b1a,#ff2d55);box-shadow:0 14px 55px rgba(255,180,0,.55)}
+.rank-emblem .tier-txt{font-size:12px;font-weight:800;letter-spacing:2.5px;text-transform:uppercase;color:rgba(255,255,255,.9)}
+.rank-emblem .div-txt{font-size:44px;font-weight:900;color:#fff;text-shadow:0 3px 10px rgba(0,0,0,.35);margin-top:2px}
+.rank-name{font-size:23px;font-weight:800;letter-spacing:-.4px}
+.rank-sub{font-size:12.5px;color:var(--muted);margin-top:5px}
+
+.stars-row{display:flex;justify-content:center;gap:9px;margin:20px 0 6px}
+.star{
+  font-size:31px;line-height:1;color:#26313f;
+  transition:transform .35s cubic-bezier(.34,1.56,.64,1),color .35s,text-shadow .35s;
+}
+.star.on{color:var(--gold);text-shadow:0 0 16px rgba(255,193,7,.85),0 0 34px rgba(255,193,7,.35);transform:scale(1.13)}
+.star.pop{animation:pop .5s ease}
+@keyframes pop{0%{transform:scale(.4) rotate(-30deg);opacity:0}60%{transform:scale(1.35) rotate(8deg)}100%{transform:scale(1.13)}}
+
+.master-star{
+  font-size:52px;color:#ffe066;
+  text-shadow:0 0 22px #ffb020,0 0 48px rgba(255,107,26,.75);
+  animation:glow 2.2s ease-in-out infinite;
+  display:inline-block;
+}
+@keyframes glow{0%,100%{transform:scale(1);filter:brightness(1)}50%{transform:scale(1.09);filter:brightness(1.35)}}
+.master-points{font-size:34px;font-weight:900;color:#fff;margin-top:6px}
+.master-points small{font-size:13px;color:var(--muted);font-weight:600;display:block;margin-top:2px}
+
+.next-box{
+  margin-top:18px;padding:12px 14px;border-radius:var(--radius-sm);
+  background:rgba(255,107,26,.08);border:1px solid rgba(255,107,26,.25);
+  font-size:13px;color:#ffd2b3;
+}
+.next-box b{color:var(--accent2)}
+
+/* ============================================================
+   PROGRESS
+   ============================================================ */
+.prog-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:9px;font-size:13px}
+.prog-head .lbl{color:var(--muted);font-weight:600}
+.prog-head .val{font-weight:800;font-size:15px}
+.bar{height:12px;background:#0b1119;border-radius:99px;overflow:hidden;border:1px solid var(--border)}
+.bar>i{
+  display:block;height:100%;border-radius:99px;
+  background:linear-gradient(90deg,var(--accent),var(--accent2));
+  transition:width .7s cubic-bezier(.22,1,.36,1);
+  box-shadow:0 0 18px rgba(255,107,26,.55);
+}
+.bar.green>i{background:linear-gradient(90deg,#16a34a,#4ade80);box-shadow:0 0 18px rgba(34,197,94,.5)}
+.bar.blue>i{background:linear-gradient(90deg,#2563eb,#60a5fa);box-shadow:0 0 18px rgba(59,130,246,.5)}
+.bar+.prog-head{margin-top:20px}
+
+/* ============================================================
+   STATS
+   ============================================================ */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(122px,1fr));gap:11px}
+.stat{
+  background:var(--card2);border:1px solid var(--border);
+  border-radius:var(--radius-sm);padding:14px 13px;
+  transition:.2s;
+}
+.stat:hover{border-color:var(--border2);transform:translateY(-2px)}
+.stat .k{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;font-weight:700;margin-bottom:6px}
+.stat .v{font-size:24px;font-weight:800;letter-spacing:-.8px;line-height:1}
+.stat .v small{font-size:12px;font-weight:600;color:var(--muted)}
+.stat.good .v{color:var(--green)}
+.stat.bad .v{color:var(--red)}
+.stat.gold .v{color:var(--gold)}
+.stat.blue .v{color:#60a5fa}
+
+/* ============================================================
+   FORMS
+   ============================================================ */
+.field{margin-bottom:16px}
+.field>label{
+  display:block;font-size:12px;font-weight:700;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.6px;margin-bottom:7px;
+}
+input[type=text],input[type=number],input[type=datetime-local],textarea,select{
+  width:100%;background:#0b1119;border:1px solid var(--border);
+  color:var(--text);border-radius:var(--radius-sm);
+  padding:11px 13px;font-size:14px;font-family:inherit;
+  transition:.2s;outline:none;
+}
+input:focus,textarea:focus,select:focus{
+  border-color:var(--accent);box-shadow:0 0 0 3px rgba(255,107,26,.15);
+}
+textarea{resize:vertical;min-height:96px;line-height:1.55}
+select{cursor:pointer;appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238494b0' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 13px center;padding-right:34px;
+}
+select option{background:#0b1119}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:13px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:11px}
+@media(max-width:560px){.grid3,.grid4{grid-template-columns:1fr 1fr}}
+.inline{display:flex;align-items:center;gap:8px}
+.inline input{text-align:center}
+
+.seg{display:flex;gap:8px;flex-wrap:wrap}
+.seg button{
+  flex:1;min-width:96px;
+  background:#0b1119;border:1px solid var(--border);color:var(--muted);
+  padding:12px 10px;border-radius:var(--radius-sm);cursor:pointer;
+  font-family:inherit;font-size:13px;font-weight:700;transition:.18s;
+}
+.seg button:hover{border-color:var(--border2);color:var(--text)}
+.seg button.active{
+  background:linear-gradient(135deg,rgba(255,107,26,.22),rgba(255,176,32,.14));
+  border-color:var(--accent);color:#ffd2b3;
+  box-shadow:0 0 0 3px rgba(255,107,26,.1);
+}
+.seg button.active[data-val="loss"]{
+  background:linear-gradient(135deg,rgba(239,68,68,.22),rgba(239,68,68,.1));
+  border-color:var(--red);color:#fca5a5;
+  box-shadow:0 0 0 3px rgba(239,68,68,.1);
+}
+
+.btn{
+  background:var(--card2);border:1px solid var(--border2);color:var(--text);
+  padding:11px 20px;border-radius:var(--radius-sm);cursor:pointer;
+  font-family:inherit;font-size:14px;font-weight:700;transition:.2s;
+}
+.btn:hover{border-color:var(--accent);color:#ffd2b3}
+.btn.primary{
+  background:linear-gradient(135deg,var(--accent),#ff8a3d);
+  border:none;color:#fff;box-shadow:0 8px 26px rgba(255,107,26,.35);
+}
+.btn.primary:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(255,107,26,.5)}
+.btn.primary:active{transform:translateY(0)}
+.btn.big{width:100%;padding:15px;font-size:15px;margin-top:6px}
+.btn.ghost{background:transparent;border-color:var(--border)}
+.btn.danger:hover{border-color:var(--red);color:#fca5a5}
+.btn.sm{padding:7px 13px;font-size:12.5px;border-radius:8px}
+
+/* ============================================================
+   SIMULATOR
+   ============================================================ */
+.sim-row{display:flex;align-items:center;gap:15px;margin-bottom:18px}
+input[type=range]{
+  -webkit-appearance:none;appearance:none;flex:1;height:7px;border-radius:99px;
+  background:linear-gradient(90deg,var(--accent) 0%,var(--accent2) 100%);
+  outline:none;cursor:pointer;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:22px;height:22px;border-radius:50%;
+  background:#fff;border:4px solid var(--accent);cursor:pointer;
+  box-shadow:0 4px 14px rgba(255,107,26,.6);transition:.15s;
+}
+input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.15)}
+input[type=range]::-moz-range-thumb{
+  width:20px;height:20px;border-radius:50%;background:#fff;
+  border:4px solid var(--accent);cursor:pointer;
+}
+.sim-badge{
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:#fff;font-weight:800;font-size:19px;
+  padding:8px 16px;border-radius:var(--radius-sm);min-width:84px;text-align:center;
+  box-shadow:0 6px 22px rgba(255,107,26,.35);
+}
+.sim-out{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:11px}
+
+/* ============================================================
+   MATCH LIST
+   ============================================================ */
+.match{
+  display:flex;align-items:center;gap:13px;
+  background:var(--card2);border:1px solid var(--border);
+  border-left:3px solid var(--border2);
+  border-radius:var(--radius-sm);padding:11px 13px;margin-bottom:9px;
+  transition:.2s;
+}
+.match:hover{border-color:var(--border2);transform:translateX(3px)}
+.match.win{border-left-color:var(--green)}
+.match.loss{border-left-color:var(--red)}
+.m-res{
+  font-size:11px;font-weight:800;letter-spacing:.5px;
+  padding:5px 9px;border-radius:6px;min-width:62px;text-align:center;
+}
+.m-res.win{background:rgba(34,197,94,.15);color:#4ade80}
+.m-res.loss{background:rgba(239,68,68,.15);color:#f87171}
+.m-main{flex:1;min-width:0}
+.m-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13.5px;font-weight:700}
+.m-kda{color:var(--muted);font-weight:600;font-size:12.5px}
+.m-meta{font-size:11.5px;color:var(--muted2);margin-top:3px;display:flex;gap:10px;flex-wrap:wrap}
+.m-stars{font-size:13.5px;font-weight:800;white-space:nowrap}
+.m-stars.pos{color:var(--gold)}
+.m-stars.neg{color:var(--red)}
+.m-del{
+  background:transparent;border:none;color:var(--muted2);cursor:pointer;
+  font-size:16px;padding:5px 7px;border-radius:7px;transition:.18s;font-family:inherit;
+}
+.m-del:hover{color:var(--red);background:rgba(239,68,68,.12)}
+
+/* ============================================================
+   COMBO CARD
+   ============================================================ */
+.combo{
+  background:var(--card2);border:1px solid var(--border);
+  border-radius:var(--radius-sm);padding:14px;margin-bottom:11px;transition:.2s;
+}
+.combo:hover{border-color:var(--accent);box-shadow:0 6px 22px rgba(255,107,26,.12)}
+.combo-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:9px}
+.combo-name{font-weight:800;font-size:15px;color:#ffd2b3}
+.combo-body{font-size:13.5px;color:var(--muted);line-height:1.65;white-space:pre-wrap;word-break:break-word}
+.combo-actions{display:flex;gap:7px;flex-shrink:0}
+
+/* ============================================================
+   CHART
+   ============================================================ */
+.chart{display:flex;align-items:flex-end;gap:9px;height:132px;padding-top:22px}
+.chart .col{flex:1;display:flex;flex-direction:column;align-items:center;gap:7px;height:100%;justify-content:flex-end}
+.chart .stack{
+  width:100%;max-width:44px;border-radius:7px 7px 3px 3px;min-height:5px;
+  background:linear-gradient(180deg,var(--accent),#a83c00);
+  position:relative;transition:height .6s cubic-bezier(.22,1,.36,1);
+  box-shadow:0 0 16px rgba(255,107,26,.3);
+}
+.chart .stack.done{background:linear-gradient(180deg,#4ade80,#15803d);box-shadow:0 0 16px rgba(34,197,94,.35)}
+.chart .stack .n{
+  position:absolute;top:-20px;left:50%;transform:translateX(-50%);
+  font-size:11.5px;font-weight:800;color:var(--text);
+}
+.chart .lbl{font-size:10.5px;color:var(--muted2);font-weight:700;text-transform:uppercase}
+.chart .lbl.today{color:var(--accent2)}
+
+/* ============================================================
+   MODAL
+   ============================================================ */
+.modal{
+  position:fixed;inset:0;z-index:200;display:none;
+  align-items:center;justify-content:center;padding:18px;
+  background:rgba(4,6,11,.88);backdrop-filter:blur(8px);
+}
+.modal.show{display:flex;animation:fade .25s ease}
+.modal-box{
+  width:100%;max-width:530px;max-height:92vh;overflow-y:auto;
+  background:linear-gradient(180deg,var(--card),var(--bg2));
+  border:1px solid var(--border2);border-radius:22px;
+  padding:30px 26px;box-shadow:0 30px 90px rgba(0,0,0,.75);
+  animation:slideUp .4s cubic-bezier(.22,1,.36,1);
+}
+@keyframes slideUp{from{opacity:0;transform:translateY(34px) scale(.97)}to{opacity:1;transform:none}}
+.modal-box h1{font-size:25px;margin-bottom:9px;letter-spacing:-.6px}
+.modal-box h1 span{background:linear-gradient(90deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.modal-box p.sub{color:var(--muted);font-size:13.5px;line-height:1.65;margin-bottom:24px}
+
+/* ============================================================
+   TOAST
+   ============================================================ */
+#toast-wrap{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);z-index:300;
+  display:flex;flex-direction:column;gap:9px;align-items:center;pointer-events:none;width:calc(100% - 32px);max-width:440px}
+.toast{
+  background:linear-gradient(135deg,#1c2537,#141b28);
+  border:1px solid var(--border2);border-left:3px solid var(--accent);
+  color:var(--text);padding:13px 18px;border-radius:12px;font-size:13.5px;font-weight:600;
+  box-shadow:0 14px 44px rgba(0,0,0,.6);animation:toastIn .35s cubic-bezier(.22,1,.36,1);
+  width:100%;text-align:center;
+}
+.toast.ok{border-left-color:var(--green)}
+.toast.err{border-left-color:var(--red)}
+.toast.win{border-left-color:var(--gold);background:linear-gradient(135deg,#2a2210,#141b28)}
+@keyframes toastIn{from{opacity:0;transform:translateY(22px) scale(.94)}to{opacity:1;transform:none}}
+.toast.out{animation:toastOut .3s ease forwards}
+@keyframes toastOut{to{opacity:0;transform:translateY(-12px) scale(.96)}}
+
+.empty{
+  text-align:center;padding:34px 18px;color:var(--muted2);font-size:13.5px;line-height:1.7;
+}
+.empty .big{font-size:38px;display:block;margin-bottom:11px;opacity:.5}
+
+.hint{font-size:11.5px;color:var(--muted2);margin-top:6px;line-height:1.5}
+.divider{height:1px;background:var(--border);margin:18px 0}
+.row-between{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+</style>
+</head>
+<body>
+
+<!-- ================= HEADER ================= -->
+<header class="top">
+  <div class="wrap">
+    <div class="top-inner">
+      <div class="logo">
+        <div class="mark">🔥</div>
+        <div>FF <span>TRACKER</span></div>
+      </div>
+      <div class="season-chip" id="seasonChip">Temporada —</div>
+    </div>
+    <nav class="tabs">
+      <button class="tab-btn active" data-tab="dashboard">📊 Painel</button>
+      <button class="tab-btn" data-tab="add">➕ Nova Partida</button>
+      <button class="tab-btn" data-tab="combos">🎭 Combinações</button>
+      <button class="tab-btn" data-tab="config">⚙️ Configurações</button>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap" style="padding-top:20px">
+
+  <!-- ================= PAINEL ================= -->
+  <section class="panel active" id="panel-dashboard">
+
+    <div class="grid rank-layout">
+      <!-- RANK -->
+      <div class="card" style="padding:0;background:transparent;border:none;box-shadow:none">
+        <div class="rank-card" id="rankCard"></div>
+      </div>
+
+      <!-- METAS -->
+      <div class="card">
+        <h2><span class="ico">🎯</span> Progresso da Temporada</h2>
+        <div id="goalsArea"></div>
+      </div>
+    </div>
+
+    <!-- ESTATÍSTICAS -->
+    <div class="card">
+      <h2><span class="ico">📈</span> Estatísticas Gerais</h2>
+      <div class="stat-grid" id="statsGrid"></div>
+    </div>
+
+    <!-- SIMULADOR -->
+    <div class="card">
+      <h2><span class="ico">🧪</span> Simulador de Vitórias</h2>
+      <div class="sim-row">
+        <input type="range" id="simRange" min="0" max="100" value="33">
+        <div class="sim-badge" id="simBadge">33%</div>
+      </div>
+      <div class="sim-out" id="simOut"></div>
+      <div class="hint" id="simHint"></div>
+    </div>
+
+    <!-- GRÁFICO -->
+    <div class="card">
+      <h2><span class="ico">📅</span> Últimos 7 Dias</h2>
+      <div class="chart" id="chart"></div>
+    </div>
+
+    <!-- HISTÓRICO -->
+    <div class="card">
+      <div class="row-between" style="margin-bottom:16px">
+        <h2 style="margin:0"><span class="ico">🕹️</span> Partidas Recentes</h2>
+        <span style="font-size:12px;color:var(--muted)" id="matchCount"></span>
+      </div>
+      <div id="matchList"></div>
+    </div>
+  </section>
+
+  <!-- ================= NOVA PARTIDA ================= -->
+  <section class="panel" id="panel-add">
+    <div class="card">
+      <h2><span class="ico">➕</span> Registrar Partida</h2>
+      <form id="matchForm" autocomplete="off">
+
+        <div class="field">
+          <label>Resultado</label>
+          <div class="seg" id="resultSeg">
+            <button type="button" data-val="win" class="active">🏆 Vitória</button>
+            <button type="button" data-val="loss">💀 Derrota</button>
+          </div>
+        </div>
+
+        <div class="grid2">
+          <div class="field">
+            <label id="starsLabel">Estrelas ganhas</label>
+            <input type="number" id="mStars" min="0" max="10" step="1" value="1">
+            <div class="hint" id="starsHint">Quantas estrelas você subiu nessa vitória.</div>
+          </div>
+          <div class="field">
+            <label>Duração da partida</label>
+            <div class="inline">
+              <input type="number" id="mDurMin" min="0" max="90" value="15" placeholder="min">
+              <span style="color:var(--muted);font-weight:800">:</span>
+              <input type="number" id="mDurSec" min="0" max="59" value="0" placeholder="seg">
+            </div>
+          </div>
+        </div>
+
+        <div class="grid3">
+          <div class="field">
+            <label>Kills</label>
+            <input type="number" id="mKills" min="0" max="99" value="0">
+          </div>
+          <div class="field">
+            <label>Mortes</label>
+            <input type="number" id="mDeaths" min="0" max="99" value="0">
+          </div>
+          <div class="field">
+            <label>Assistências</label>
+            <input type="number" id="mAssists" min="0" max="99" value="0">
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Medalha da partida</label>
+          <div class="seg" id="medalSeg">
+            <button type="button" data-val="gold" class="active">🥇 Ouro <small style="opacity:.7">(MVP)</small></button>
+            <button type="button" data-val="silver">🥈 Prata</button>
+            <button type="button" data-val="bronze">🥉 Bronze</button>
+            <button type="button" data-val="none">— Sem</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Combinação de personagens usada</label>
+          <select id="mCombo"><option value="">— Nenhuma / Não registrada —</option></select>
+          <div class="hint">Crie combinações na aba 🎭 Combinações.</div>
+        </div>
+
+        <div class="field">
+          <label>Data e hora</label>
+          <input type="datetime-local" id="mDate">
+        </div>
+
+        <button type="submit" class="btn primary big">💾 Salvar Partida</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- ================= COMBINAÇÕES ================= -->
+  <section class="panel" id="panel-combos">
+    <div class="grid cols-2">
+      <div class="card">
+        <h2><span class="ico">✨</span> Nova Combinação</h2>
+        <form id="comboForm" autocomplete="off">
+          <input type="hidden" id="comboEditId">
+          <div class="field">
+            <label>Título da combinação</label>
+            <input type="text" id="comboName" placeholder="Ex: Combinação de Cura" maxlength="60">
+          </div>
+          <div class="field">
+            <label>Personagens / Habilidades</label>
+            <textarea id="comboChars" placeholder="Ex: X, Y, Z, A&#10;&#10;Ou detalhado:&#10;Kelly (Velocidade)&#10;Alok (Cura)&#10;Chrono (Escudo)"></textarea>
+          </div>
+          <div style="display:flex;gap:9px">
+            <button type="submit" class="btn primary" style="flex:1">Salvar</button>
+            <button type="button" class="btn ghost" id="comboCancel" style="display:none">Cancelar</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card">
+        <h2><span class="ico">📚</span> Minhas Combinações <span id="comboCount" style="color:var(--accent2);margin-left:auto"></span></h2>
+        <div id="comboList"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= CONFIG ================= -->
+  <section class="panel" id="panel-config">
+    <div class="card">
+      <h2><span class="ico">🎯</span> Metas da Temporada</h2>
+      <div class="grid2">
+        <div class="field">
+          <label>Meta diária (partidas/dia)</label>
+          <input type="number" id="cfgDaily" min="1" max="100" step="1">
+          <div class="hint">Preenche automaticamente a meta total.</div>
+        </div>
+        <div class="field">
+          <label>Meta total da temporada</label>
+          <input type="number" id="cfgSeason" min="1" max="10000" step="1">
+          <div class="hint">Preenche automaticamente a meta diária.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="ico">🏅</span> Rank Inicial da Temporada</h2>
+      <p class="hint" style="margin-bottom:14px">
+        Este é o rank em que você <b>começou</b> a temporada. Todas as partidas registradas
+        são aplicadas em cima dele para calcular seu rank atual.
+      </p>
+      <div class="grid3">
+        <div class="field">
+          <label>Divisão / Elo</label>
+          <select id="cfgRankTier"></select>
+        </div>
+        <div class="field">
+          <label>Nível</label>
+          <select id="cfgRankDiv"></select>
+        </div>
+        <div class="field">
+          <label>Estrelas</label>
+          <input type="number" id="cfgRankStars" min="1" max="5" step="1">
+        </div>
+      </div>
+      <button class="btn primary" id="cfgRankSave">Aplicar Rank Inicial</button>
+    </div>
+
+    <div class="card">
+      <h2><span class="ico">💾</span> Dados</h2>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn" id="btnExport">⬇️ Exportar JSON</button>
+        <button class="btn" id="btnImport">⬆️ Importar JSON</button>
+        <button class="btn danger" id="btnReset">🗑️ Apagar Tudo</button>
+      </div>
+      <input type="file" id="fileImport" accept="application/json" style="display:none">
+    </div>
+  </section>
+
+</div>
+
+<!-- ================= ONBOARDING ================= -->
+<div class="modal" id="onboarding">
+  <div class="modal-box">
+    <h1>Bem-vindo ao <span>FF Tracker</span> 🔥</h1>
+    <p class="sub">
+      Vamos configurar sua temporada. Defina uma meta e os dois campos se ajustam automaticamente.<br>
+      <b style="color:var(--accent2)" id="obDays"></b>
+    </p>
+    <div class="grid2">
+      <div class="field">
+        <label>Meta diária</label>
+        <input type="number" id="obDaily" min="1" max="100" step="1" placeholder="Ex: 3">
+      </div>
+      <div class="field">
+        <label>Meta total da temporada</label>
+        <input type="number" id="obSeason" min="1" max="10000" step="1" placeholder="Ex: 183">
+      </div>
+    </div>
+    <button class="btn primary big" id="obStart">Começar a Temporada 🚀</button>
+  </div>
+</div>
+
+<div id="toast-wrap"></div>
+
+<script>
+/* ============================================================================
+   FF TRACKER — Núcleo da aplicação
+   ============================================================================ */
+'use strict';
+
+/* ------------------------------ CONSTANTES ------------------------------ */
+const LS_KEY = 'ffTracker_v1';
+
+const SEASON_START = new Date(2026, 9, 1, 0, 0, 0);   // 01/10/2026
+const SEASON_END   = new Date(2026, 11, 1, 0, 0, 0);  // 01/12/2026
+const TOTAL_DAYS   = Math.round((SEASON_END - SEASON_START) / 86400000);
+
+const DIV_TIERS = [
+  { name: 'Bronze',   slug: 'bronze',   divisions: 3 },
+  { name: 'Prata',    slug: 'prata',    divisions: 3 },
+  { name: 'Ouro',     slug: 'ouro',     divisions: 4 },
+  { name: 'Platina',  slug: 'platina',  divisions: 5 },
+  { name: 'Diamante', slug: 'diamante', divisions: 5 }
+];
+
+const MASTER_TIERS = [
+  { name: 'Mestre',          slug: 'mestre',          min: 1,    max: 24 },
+  { name: 'Mestre de Honra', slug: 'mestre-de-honra', min: 25,   max: 49 },
+  { name: 'Elite',           slug: 'elite',           min: 50,   max: 99 },
+  { name: 'Elite de Honra',  slug: 'elite-de-honra',  min: 100,  max: 999 },
+  { name: 'Desafiante',      slug: 'desafiante',      min: 1000, max: Infinity }
+];
+
+const MAX_STARS  = 5;                 // estrelas por divisão
+const DIV_LIMIT  = 100;               // abs 0..99 = divisões | abs >= 100 = mestre+
+const MEDALS     = ['gold','silver','bronze','none'];
+const MEDAL_ICON = { gold:'🥇', silver:'🥈', bronze:'🥉', none:'—' };
+const MEDAL_NAME = { gold:'MVP', silver:'2º lugar', bronze:'3º lugar', none:'Sem medalha' };
+
+/* ------------------------------- UTILS ---------------------------------- */
+const $  = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+const deep = o => JSON.parse(JSON.stringify(o));
+
+function pad(n){ return String(n).padStart(2,'0'); }
+function dayKey(d){ return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
+function toLocalInput(d){
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+function fmtDuration(sec){
+  if (!sec) return '—';
+  const m = Math.floor(sec/60), s = sec % 60;
+  return `${m}m ${pad(s)}s`;
+}
+function fmtNum(n, dec = 2){
+  if (!isFinite(n)) return '0';
+  return Number(n.toFixed(dec)).toString().replace('.', ',');
+}
+
+/* ------------------------------- ESTADO --------------------------------- */
+function defaultState(){
+  return {
+    onboarded : false,
+    goals     : { daily: null, season: null },
+    baseRankAbs: 68,          // Platina 4 · 4 estrelas
+    matches   : [],
+    combos    : [],
+    simRate   : 33
+  };
+}
+
+let state = loadState();
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    if (!raw) return defaultState();
+    const p = JSON.parse(raw);
+    const d = defaultState();
+    return {
+      ...d, ...p,
+      goals:   { ...d.goals,   ...(p.goals   || {}) },
+      matches: Array.isArray(p.matches) ? p.matches : [],
+      combos:  Array.isArray(p.combos)  ? p.combos  : []
+    };
+  } catch(e){
+    console.warn('Falha ao carregar estado:', e);
+    return defaultState();
+  }
+}
+
+function saveState(){
+  try { localStorage.setItem(LS_KEY, JSON.stringify(state)); }
+  catch(e){ console.warn('Falha ao salvar:', e); toast('Erro ao salvar dados', 'err'); }
+}
+
+/* ============================================================================
+   SISTEMA DE RANK  (representação: inteiro absoluto "abs")
+   abs 0   = Bronze 1 · 1 estrela
+   abs 99  = Diamante 5 · 5 estrelas
+   abs 100 = Mestre 1 estrela ... abs 1000+ = Desafiante
+   ============================================================================ */
+function rankInfo(abs){
+  abs = Math.max(0, Math.round(abs));
+
+  if (abs < DIV_LIMIT){
+    let d = Math.floor(abs / MAX_STARS);          // índice global da divisão
+    const stars = (abs % MAX_STARS) + 1;          // 1..5
+    let tier = 0;
+    while (tier < DIV_TIERS.length && d >= DIV_TIERS[tier].divisions){
+      d -= DIV_TIERS[tier].divisions;
+      tier++;
+    }
+    return {
+      phase : 'div',
+      tier  : DIV_TIERS[tier].name,
+      slug  : DIV_TIERS[tier].slug,
+      div   : d + 1,
+      stars,
+      abs,
+      label : `${DIV_TIERS[tier].name} ${d + 1}`
+    };
+  }
+
+  const pts = abs - (DIV_LIMIT - 1);              // Mestre 1 estrela = 100 -> pts 1
+  const t = MASTER_TIERS.find(x => pts >= x.min && pts <= x.max) || MASTER_TIERS[MASTER_TIERS.length-1];
+  return {
+    phase : 'master',
+    tier  : t.name,
+    slug  : t.slug,
+    div   : null,
+    stars : null,
+    points: pts,
+    abs,
+    label : t.name
+  };
+}
+
+/** Converte (tierIndex, divisão, estrelas) -> abs */
+function toAbs(tierIdx, div, stars){
+  let d = 0;
+  for (let i = 0; i < tierIdx; i++) d += DIV_TIERS[i].divisions;
+  d += (div - 1);
+  return d * MAX_STARS + (stars - 1);
+}
+
+/** Próximo marco (promoção) */
+function nextMilestone(abs){
+  if (abs < DIV_LIMIT - 1){
+    const promoAbs = (Math.floor(abs / MAX_STARS) + 1) * MAX_STARS;
+    return { abs: promoAbs, need: promoAbs - abs, target: rankInfo(promoAbs) };
+  }
+  if (abs === DIV_LIMIT - 1){
+    return { abs: DIV_LIMIT, need: 1, target: rankInfo(DIV_LIMIT) };
+  }
+  const pts = abs - (DIV_LIMIT - 1);
+  const next = MASTER_TIERS.find(x => x.min > pts);
+  if (!next) return null;
+  return { abs: next.min + (DIV_LIMIT - 1), need: next.min - pts, target: rankInfo(next.min + (DIV_LIMIT - 1)) };
+}
+
+/** Aplica todas as partidas sobre o rank base */
+function computeCurrentAbs(){
+  const sorted = [...state.matches].sort((a, b) => a.ts - b.ts);
+  let abs = state.baseRankAbs;
+  for (const m of sorted){
+    const s = Number(m.stars) || 0;
+    abs += (m.result === 'win' ? s : -s);
+  }
+  return Math.max(0, abs);
+}
+
+/* ============================================================================
+   ESTATÍSTICAS
+   ============================================================================ */
+function computeStats(){
+  const ms = state.matches;
+  const total = ms.length;
+  const wins   = ms.filter(m => m.result === 'win').length;
+  const losses = total - wins;
+  const kills   = ms.reduce((a, m) => a + (+m.kills   || 0), 0);
+  const deaths  = ms.reduce((a, m) => a + (+m.deaths  || 0), 0);
+  const assists = ms.reduce((a, m) => a + (+m.assists || 0), 0);
+  const time    = ms.reduce((a, m) => a + (+m.duration|| 0), 0);
+
+  const medals = { gold:0, silver:0, bronze:0, none:0 };
+  ms.forEach(m => { if (medals[m.medal] !== undefined) medals[m.medal]++; });
+
+  const sorted = [...ms].sort((a, b) => a.ts - b.ts);
+  let streak = 0, streakType = null;
+  for (let i = sorted.length - 1; i >= 0; i--){
+    if (streakType === null){ streakType = sorted[i].result; streak = 1; }
+    else if (sorted[i].result === streakType) streak++;
+    else break;
+  }
+
+  const bestKills = ms.reduce((a, m) => Math.max(a, +m.kills || 0), 0);
+  const winStars  = ms.filter(m => m.result === 'win').map(m => +m.stars || 0);
+  const lossStars = ms.filter(m => m.result === 'loss').map(m => +m.stars || 0);
+  const avgWinStars  = winStars.length  ? winStars.reduce((a,b)=>a+b,0)  / winStars.length  : 1;
+  const avgLossStars = lossStars.length ? lossStars.reduce((a,b)=>a+b,0) / lossStars.length : 1;
+
+  return {
+    total, wins, losses,
+    winRate : total ? (wins / total) * 100 : 0,
+    kills, deaths, assists, time,
+    kd  : kills / Math.max(1, deaths),
+    kda : (kills + assists) / Math.max(1, deaths),
+    avgKills : total ? kills / total : 0,
+    avgDeaths: total ? deaths / total : 0,
+    medals, streak, streakType, bestKills,
+    avgWinStars, avgLossStars,
+    avgDuration: total ? time / total : 0
+  };
+}
+
+/* ============================================================================
+   RENDER — RANK
+   ============================================================================ */
+let lastAbs = null;
+
+function renderRank(){
+  const abs  = computeCurrentAbs();
+  const info = rankInfo(abs);
+  const card = $('#rankCard');
+
+  let starsHTML = '';
+  if (info.phase === 'div'){
+    starsHTML = '<div class="stars-row">' +
+      Array.from({length:5}, (_, i) =>
+        `<span class="star ${i < info.stars ? 'on' : ''}">★</span>`
+      ).join('') + '</div>';
+  } else {
+    starsHTML = `
+      <div style="margin:18px 0 4px">
+        <span class="master-star">★</span>
+        <div class="master-points">${info.points}
+          <small>${info.tier === 'Desafiante' ? 'pontos' : 'estrelas'}</small>
+        </div>
+      </div>`;
+  }
+
+  const ms = nextMilestone(abs);
+  let nextHTML = '';
+  if (ms){
+    nextHTML = `<div class="next-box">Faltam <b>${ms.need} ${ms.need === 1 ? 'estrela' : 'estrelas'}</b>
+      para chegar em <b>${ms.target.label}</b></div>`;
+  } else {
+    nextHTML = `<div class="next-box">🏆 Você está no <b>topo do ranking</b>!</div>`;
+  }
+
+  card.innerHTML = `
+    <div class="rank-emblem tier-${info.slug}">
+      <div>
+        <div class="tier-txt">${info.tier}</div>
+        ${info.div ? `<div class="div-txt">${info.div}</div>` : `<div class="div-txt">★</div>`}
+      </div>
+    </div>
+    <div class="rank-name">${info.label}</div>
+    <div class="rank-sub">${info.phase === 'div' ? `${info.stars} / 5 estrelas` : `${info.points} pontos de ranking`}</div>
+    ${starsHTML}
+    ${nextHTML}
+  `;
+
+  // Animação de estrela ao subir
+  if (lastAbs !== null && abs > lastAbs){
+    $$('.star.on', card).forEach((el, i) => {
+      setTimeout(() => { el.classList.add('pop'); }, i * 70);
+    });
+  }
+  lastAbs = abs;
+}
+
+/* ============================================================================
+   RENDER — METAS / PROGRESSO
+   ============================================================================ */
+function todayMatchCount(){
+  const tk = dayKey(new Date());
+  return state.matches.filter(m => dayKey(new Date(m.ts)) === tk).length;
+}
+
+function renderGoals(){
+  const box = $('#goalsArea');
+  const st  = computeStats();
+  const daily  = state.goals.daily  || 0;
+  const season = state.goals.season || 0;
+
+  const seasonPct = season ? clamp((st.total / season) * 100, 0, 100) : 0;
+  const todayN    = todayMatchCount();
+  const dailyPct  = daily ? clamp((todayN / daily) * 100, 0, 100) : 0;
+
+  const today = new Date();
+  const dayIdx = clamp(Math.floor((today - SEASON_START) / 86400000) + 1, 1, TOTAL_DAYS);
+  const daysLeft = Math.max(0, Math.ceil((SEASON_END - today) / 86400000));
+
+  const remaining = Math.max(0, season - st.total);
+  const perDay = daysLeft > 0 ? remaining / daysLeft : remaining;
+
+  box.innerHTML = `
+    <div class="prog-head">
+      <span class="lbl">Meta da temporada</span>
+      <span class="val">${st.total} / ${season || '—'}</span>
+    </div>
+    <div class="bar"><i style="width:${seasonPct}%"></i></div>
+    <div class="hint">${season
+      ? (remaining > 0
+          ? `Faltam <b style="color:var(--accent2)">${remaining}</b> partidas · ~<b style="color:var(--accent2)">${fmtNum(perDay,1)}</b>/dia nos ${daysLeft} dias restantes`
+          : '🎉 Meta da temporada concluída!')
+      : 'Defina uma meta em ⚙️ Configurações'}</div>
+
+    <div class="prog-head" style="margin-top:22px">
+      <span class="lbl">Meta de hoje</span>
+      <span class="val">${todayN} / ${daily || '—'}</span>
+    </div>
+    <div class="bar green"><i style="width:${dailyPct}%"></i></div>
+    <div class="hint">${daily
+      ? (todayN >= daily ? '✅ Meta diária batida! Mandou bem.' : `Faltam <b style="color:#4ade80">${daily - todayN}</b> partidas hoje`)
+      : 'Defina uma meta em ⚙️ Configurações'}</div>
+
+    <div class="divider"></div>
+    <div class="stat-grid" style="grid-template-columns:1fr 1fr 1fr">
+      <div class="stat blue"><div class="k">Dia da temporada</div><div class="v">${dayIdx}<small>/${TOTAL_DAYS}</small></div></div>
+      <div class="stat"><div class="k">Dias restantes</div><div class="v">${daysLeft}</div></div>
+      <div class="stat gold"><div class="k">Tempo jogado</div><div class="v">${Math.floor(st.time/3600)}<small>h ${Math.floor((st.time%3600)/60)}m</small></div></div>
+    </div>
+  `;
+}
+
+/* ============================================================================
+   RENDER — ESTATÍSTICAS
+   ============================================================================ */
+function renderStats(){
+  const s = computeStats();
+  const g = $('#statsGrid');
+  g.innerHTML = `
+    <div class="stat"><div class="k">Partidas</div><div class="v">${s.total}</div></div>
+    <div class="stat good"><div class="k">Vitórias</div><div class="v">${s.wins}</div></div>
+    <div class="stat bad"><div class="k">Derrotas</div><div class="v">${s.losses}</div></div>
+    <div class="stat ${s.winRate >= 50 ? 'good' : ''}"><div class="k">Taxa de vitória</div><div class="v">${fmtNum(s.winRate,1)}<small>%</small></div></div>
+    <div class="stat"><div class="k">K/D</div><div class="v">${fmtNum(s.kd,2)}</div></div>
+    <div class="stat"><div class="k">KDA</div><div class="v">${fmtNum(s.kda,2)}</div></div>
+    <div class="stat"><div class="k">Kills totais</div><div class="v">${s.kills}</div></div>
+    <div class="stat"><div class="k">Mortes totais</div><div class="v">${s.deaths}</div></div>
+    <div class="stat"><div class="k">Assistências</div><div class="v">${s.assists}</div></div>
+    <div class="stat"><div class="k">Média kills</div><div class="v">${fmtNum(s.avgKills,2)}</div></div>
+    <div class="stat gold"><div class="k">🥇 MVPs</div><div class="v">${s.medals.gold}</div></div>
+    <div class="stat"><div class="k">🥈 / 🥉</div><div class="v">${s.medals.silver}<small> / </small>${s.medals.bronze}</div></div>
+    <div class="stat ${s.streakType === 'win' ? 'good' : s.streak ? 'bad' : ''}">
+      <div class="k">Sequência</div>
+      <div class="v">${s.streak || 0}<small> ${s.streakType === 'win' ? 'V' : s.streak ? 'D' : ''}</small></div>
+    </div>
+    <div class="stat"><div class="k">Recorde de kills</div><div class="v">${s.bestKills}</div></div>
+    <div class="stat"><div class="k">Duração média</div><div class="v">${fmtNum(s.avgDuration/60,1)}<small>min</small></div></div>
+  `;
+}
+
+/* ============================================================================
+   RENDER — SIMULADOR
+   ============================================================================ */
+function renderSim(){
+  const rate = state.simRate;
+  $('#simRange').value = rate;
+  $('#simBadge').textContent = rate + '%';
+
+  const s = computeStats();
+  const goal = state.goals.season || 0;
+
+  if (!goal){
+    $('#simOut').innerHTML = `<div class="empty" style="grid-column:1/-1">Defina uma meta de temporada para simular.</div>`;
+    $('#simHint').textContent = '';
+    return;
+  }
+
+  const wins   = Math.round(goal * rate / 100);
+  const losses = goal - wins;
+
+  const absNow  = computeCurrentAbs();
+  const absEnd  = absNow + wins * s.avgWinStars - losses * s.avgLossStars;
+  const endInfo = rankInfo(Math.max(0, absEnd));
+
+  $('#simOut').innerHTML = `
+    <div class="stat"><div class="k">Partidas na meta</div><div class="v">${goal}</div></div>
+    <div class="stat good"><div class="k">Vitórias</div><div class="v">${wins}</div></div>
+    <div class="stat bad"><div class="k">Derrotas</div><div class="v">${losses}</div></div>
+    <div class="stat gold"><div class="k">Rank estimado</div><div class="v" style="font-size:17px">${endInfo.label}</div></div>
+  `;
+
+  const hasData = s.total > 0;
+  $('#simHint').innerHTML = hasData
+    ? `Estimativa baseada no seu histórico: <b>+${fmtNum(s.avgWinStars,1)}</b> estrelas por vitória e <b>-${fmtNum(s.avgLossStars,1)}</b> por derrota.`
+    : `Estimativa padrão: +1 estrela por vitória e -1 por derrota. Registre partidas para refinar.`;
+}
+
+/* ============================================================================
+   RENDER — GRÁFICO 7 DIAS
+   ============================================================================ */
+function renderChart(){
+  const el = $('#chart');
+  const days = [];
+  const today = new Date();
+
+  for (let i = 6; i >= 0; i--){
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    d.setHours(0,0,0,0);
+    const k = dayKey(d);
+    const n = state.matches.filter(m => dayKey(new Date(m.ts)) === k).length;
+    days.push({ d, n, isToday: i === 0 });
+  }
+
+  const max = Math.max(1, ...days.map(x => x.n), state.goals.daily || 0);
+  const daily = state.goals.daily || 0;
+  const wd = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+
+  el.innerHTML = days.map(x => {
+    const h = Math.max(5, (x.n / max) * 100);
+    const done = daily && x.n >= daily;
+    return `
+      <div class="col">
+        <div class="stack ${done ? 'done' : ''}" style="height:${h}%">
+          <span class="n">${x.n}</span>
+        </div>
+        <div class="lbl ${x.isToday ? 'today' : ''}">${wd[x.d.getDay()]}</div>
+      </div>`;
+  }).join('');
+}
+
+/* ============================================================================
+   RENDER — LISTA DE PARTIDAS
+   ============================================================================ */
+function renderMatchList(){
+  const box = $('#matchList');
+  const list = [...state.matches].sort((a, b) => b.ts - a.ts);
+  $('#matchCount').textContent = list.length ? `${list.length} partida(s)` : '';
+
+  if (!list.length){
+    box.innerHTML = `<div class="empty"><span class="big">🎮</span>Nenhuma partida registrada ainda.<br>Vá em <b>➕ Nova Partida</b> e comece a construir seu progresso!</div>`;
+    return;
+  }
+
+  box.innerHTML = list.slice(0, 40).map(m => {
+    const combo = state.combos.find(c => c.id === m.comboId);
+    const d = new Date(m.ts);
+    const dateStr = `${pad(d.getDate())}/${pad(d.getMonth()+1)} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    const starsTxt = m.result === 'win' ? `+${m.stars}★` : `-${m.stars}★`;
+    return `
+      <div class="match ${m.result}">
+        <div class="m-res ${m.result}">${m.result === 'win' ? 'VITÓRIA' : 'DERROTA'}</div>
+        <div class="m-main">
+          <div class="m-top">
+            <span>${MEDAL_ICON[m.medal] || '—'}</span>
+            <span class="m-kda">${m.kills} / ${m.deaths} / ${m.assists}</span>
+          </div>
+          <div class="m-meta">
+            <span>${dateStr}</span>
+            <span>${fmtDuration(m.duration)}</span>
+            ${combo ? `<span style="color:var(--accent2)">🎭 ${escapeHtml(combo.name)}</span>` : ''}
+          </div>
+        </div>
+        <div class="m-stars ${m.result === 'win' ? 'pos' : 'neg'}">${starsTxt}</div>
+        <button class="m-del" data-del="${m.id}" title="Excluir">✕</button>
+      </div>`;
+  }).join('');
+
+  $$('[data-del]', box).forEach(b => {
+    b.addEventListener('click', () => deleteMatch(b.dataset.del));
+  });
+}
+
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* ============================================================================
+   RENDER — COMBINAÇÕES
+   ============================================================================ */
+function renderCombos(){
+  const box = $('#comboList');
+  $('#comboCount').textContent = state.combos.length ? `(${state.combos.length})` : '';
+
+  // Select do formulário de partida
+  const sel = $('#mCombo');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">— Nenhuma / Não registrada —</option>' +
+    state.combos.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
+  sel.value = cur;
+
+  if (!state.combos.length){
+    box.innerHTML = `<div class="empty"><span class="big">🎭</span>Nenhuma combinação criada.<br>Crie a primeira ao lado!</div>`;
+    return;
+  }
+
+  box.innerHTML = state.combos.map(c => `
+    <div class="combo">
+      <div class="combo-head">
+        <div class="combo-name">${escapeHtml(c.name)}</div>
+        <div class="combo-actions">
+          <button class="btn sm" data-edit="${c.id}">✏️</button>
+          <button class="btn sm danger" data-delc="${c.id}">🗑️</button>
+        </div>
+      </div>
+      <div class="combo-body">${escapeHtml(c.chars)}</div>
+    </div>
+  `).join('');
+
+  $$('[data-edit]', box).forEach(b => b.addEventListener('click', () => editCombo(b.dataset.edit)));
+  $$('[data-delc]', box).forEach(b => b.addEventListener('click', () => deleteCombo(b.dataset.delc)));
+}
+
+/* ============================================================================
+   AÇÕES — PARTIDAS
+   ============================================================================ */
+let currentResult = 'win';
+let currentMedal  = 'gold';
+
+function deleteMatch(id){
+  const m = state.matches.find(x => x.id === id);
+  if (!m) return;
+  if (!confirm('Excluir esta partida? O rank será recalculado.')) return;
+  state.matches = state.matches.filter(x => x.id !== id);
+  saveState();
+  lastAbs = null;
+  renderAll();
+  toast('Partida excluída', 'ok');
+}
+
+function handleMatchSubmit(e){
+  e.preventDefault();
+
+  const tsRaw = $('#mDate').value;
+  const ts = tsRaw ? new Date(tsRaw).getTime() : Date.now();
+
+  const duration = (parseInt($('#mDurMin').value) || 0) * 60 + (parseInt($('#mDurSec').value) || 0);
+
+  const match = {
+    id       : uid(),
+    ts       : isNaN(ts) ? Date.now() : ts,
+    result   : currentResult,
+    stars    : clamp(parseInt($('#mStars').value) || 0, 0, 20),
+    kills    : clamp(parseInt($('#mKills').value)   || 0, 0, 99),
+    deaths   : clamp(parseInt($('#mDeaths').value)  || 0, 0, 99),
+    assists  : clamp(parseInt($('#mAssists').value) || 0, 0, 99),
+    medal    : currentMedal,
+    duration,
+    comboId  : $('#mCombo').value || null
+  };
+
+  const before = rankInfo(computeCurrentAbs());
+  state.matches.push(match);
+  saveState();
+  const after = rankInfo(computeCurrentAbs());
+
+  renderAll();
+
+  // Feedback
+  if (match.result === 'win'){
+    if (after.label !== before.label){
+      toast(`🔥 PROMOÇÃO! ${before.label} → ${after.label}`, 'win');
+    } else {
+      toast(`🏆 Vitória registrada! +${match.stars}★ · ${after.stars}/5 estrelas`, 'win');
+    }
+  } else {
+    if (after.label !== before.label){
+      toast(`💀 Caiu para ${after.label}`, 'err');
+    } else {
+      toast(`Partida registrada. -${match.stars}★ · ${after.stars}/5 estrelas`, 'ok');
+    }
+  }
+
+  // Reset parcial (mantém medalha, combo e resultado)
+  $('#mKills').value = 0;
+  $('#mDeaths').value = 0;
+  $('#mAssists').value = 0;
+  $('#mDurMin').value = 15;
+  $('#mDurSec').value = 0;
+  $('#mStars').value = currentResult === 'win' ? 1 : 0;
+  $('#mDate').value = toLocalInput(new Date());
+}
+
+/* ============================================================================
+   AÇÕES — COMBINAÇÕES
+   ============================================================================ */
+function handleComboSubmit(e){
+  e.preventDefault();
+  const name  = $('#comboName').value.trim();
+  const chars = $('#comboChars').value.trim();
+  const editId = $('#comboEditId').value;
+
+  if (!name){ toast('Digite um título para a combinação', 'err'); return; }
+  if (!chars){ toast('Descreva os personagens da combinação', 'err'); return; }
+
+  if (editId){
+    const c = state.combos.find(x => x.id === editId);
+    if (c){ c.name = name; c.chars = chars; }
+    toast('Combinação atualizada!', 'ok');
+    resetComboForm();
+  } else {
+    state.combos.push({ id: uid(), name, chars });
+    toast('Combinação criada!', 'ok');
+  }
+
+  $('#comboName').value = '';
+  $('#comboChars').value = '';
+  saveState();
+  renderCombos();
+}
+
+function editCombo(id){
+  const c = state.combos.find(x => x.id === id);
+  if (!c) return;
+  $('#comboEditId').value = c.id;
+  $('#comboName').value = c.name;
+  $('#comboChars').value = c.chars;
+  $('#comboCancel').style.display = 'block';
+  $('#panel-combos').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  $('#comboName').focus();
+}
+
+function resetComboForm(){
+  $('#comboEditId').value = '';
+  $('#comboName').value = '';
+  $('#comboChars').value = '';
+  $('#comboCancel').style.display = 'none';
+}
+
+function deleteCombo(id){
+  const c = state.combos.find(x => x.id === id);
+  if (!c) return;
+  if (!confirm(`Excluir a combinação "${c.name}"?`)) return;
+  state.combos = state.combos.filter(x => x.id !== id);
+  state.matches.forEach(m => { if (m.comboId === id) m.comboId = null; });
+  saveState();
+  resetComboForm();
+  renderAll();
+  toast('Combinação excluída', 'ok');
+}
+
+/* ============================================================================
+   AÇÕES — CONFIGURAÇÕES
+   ============================================================================ */
+function syncGoalsFromDaily(){
+  const d = parseFloat($('#cfgDaily').value);
+  if (!d || d <= 0) return;
+  const s = Math.round(d * TOTAL_DAYS);
+  $('#cfgSeason').value = s;
+  state.goals.daily  = d;
+  state.goals.season = s;
+  saveState();
+  renderGoals(); renderSim();
+}
+
+function syncGoalsFromSeason(){
+  const s = parseFloat($('#cfgSeason').value);
+  if (!s || s <= 0) return;
+  const d = +(s / TOTAL_DAYS).toFixed(2);
+  $('#cfgDaily').value = d;
+  state.goals.season = Math.round(s);
+  state.goals.daily  = d;
+  saveState();
+  renderGoals(); renderSim();
+}
+
+function buildRankSelectors(){
+  const tierSel = $('#cfgRankTier');
+  const divSel  = $('#cfgRankDiv');
+
+  tierSel.innerHTML = DIV_TIERS.map((t, i) => `<option value="${i}">${t.name}</option>`).join('');
+
+  const updateDivs = () => {
+    const ti = parseInt(tierSel.value) || 0;
+    const n = DIV_TIERS[ti].divisions;
+    divSel.innerHTML = Array.from({length: n}, (_, i) => `<option value="${i+1}">${i+1}</option>`).join('');
+  };
+
+  tierSel.onchange = updateDivs;
+  updateDivs();
+
+  // Preenche com o rank base atual
+  const cur = rankInfo(state.baseRankAbs);
+  if (cur.phase === 'div'){
+    const ti = DIV_TIERS.findIndex(t => t.name === cur.tier);
+    tierSel.value = ti;
+    updateDivs();
+    divSel.value = cur.div;
+    $('#cfgRankStars').value = cur.stars;
+  }
+}
+
+function saveBaseRank(){
+  const ti = parseInt($('#cfgRankTier').value) || 0;
+  const dv = parseInt($('#cfgRankDiv').value) || 1;
+  const st = clamp(parseInt($('#cfgRankStars').value) || 1, 1, 5);
+  state.baseRankAbs = toAbs(ti, dv, st);
+  saveState();
+  lastAbs = null;
+  renderAll();
+  toast(`Rank inicial definido: ${rankInfo(state.baseRankAbs).label} · ${st}★`, 'ok');
+}
+
+/* ============================================================================
+   EXPORT / IMPORT / RESET
+   ============================================================================ */
+function exportData(){
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `ff-tracker-${dayKey(new Date())}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('Backup exportado!', 'ok');
+}
+
+function importData(file){
+  const reader = new FileReader();
+  reader.onload = () => {
+    try{
+      const p = JSON.parse(reader.result);
+      if (typeof p !== 'object' || p === null) throw new Error('inválido');
+      const d = defaultState();
+      state = {
+        ...d, ...p,
+        goals:   { ...d.goals, ...(p.goals || {}) },
+        matches: Array.isArray(p.matches) ? p.matches : [],
+        combos:  Array.isArray(p.combos)  ? p.combos  : []
+      };
+      saveState();
+      lastAbs = null;
+      bootUI();
+      renderAll();
+      toast('Backup importado com sucesso!', 'ok');
+    } catch(e){
+      toast('Arquivo inválido', 'err');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function resetAll(){
+  if (!confirm('Isso apagará TODAS as partidas, combinações e configurações. Continuar?')) return;
+  if (!confirm('Tem certeza absoluta? Essa ação não pode ser desfeita.')) return;
+  localStorage.removeItem(LS_KEY);
+  state = defaultState();
+  lastAbs = null;
+  location.reload();
+}
+
+/* ============================================================================
+   TOAST
+   ============================================================================ */
+function toast(msg, type = 'ok'){
+  const wrap = $('#toast-wrap');
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.innerHTML = msg;
+  wrap.appendChild(el);
+  setTimeout(() => {
+    el.classList.add('out');
+    setTimeout(() => el.remove(), 320);
+  }, 3200);
+}
+
+/* ============================================================================
+   RENDER GERAL
+   ============================================================================ */
+function renderAll(){
+  renderRank();
+  renderGoals();
+  renderStats();
+  renderSim();
+  renderChart();
+  renderMatchList();
+  renderCombos();
+  updateSeasonChip();
+}
+
+function updateSeasonChip(){
+  const today = new Date();
+  const dayIdx = clamp(Math.floor((today - SEASON_START) / 86400000) + 1, 1, TOTAL_DAYS);
+  const daysLeft = Math.max(0, Math.ceil((SEASON_END - today) / 86400000));
+  const pct = Math.round((dayIdx / TOTAL_DAYS) * 100);
+  $('#seasonChip').innerHTML =
+    `Temporada <b>01/10 → 01/12</b> &nbsp;·&nbsp; Dia <b>${dayIdx}/${TOTAL_DAYS}</b> (${pct}%) &nbsp;·&nbsp; <b>${daysLeft}</b> dias restantes`;
+}
+
+/* ============================================================================
+   BOOT / EVENTOS
+   ============================================================================ */
+function bootUI(){
+  // Config: metas
+  $('#cfgDaily').value  = state.goals.daily  ?? '';
+  $('#cfgSeason').value = state.goals.season ?? '';
+
+  // Config: rank
+  buildRankSelectors();
+
+  // Simulador
+  $('#simRange').value = state.simRate ?? 33;
+
+  // Combos select
+  renderCombos();
+}
+
+function bindEvents(){
+  /* --- Tabs --- */
+  $$('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      $$('.tab-btn').forEach(b => b.classList.remove('active'));
+      $$('.panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      $('#panel-' + btn.dataset.tab).classList.add('active');
+      if (btn.dataset.tab === 'dashboard') renderAll();
+    });
+  });
+
+  /* --- Resultado --- */
+  $$('#resultSeg button').forEach(b => {
+    b.addEventListener('click', () => {
+      $$('#resultSeg button').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      currentResult = b.dataset.val;
+
+      if (currentResult === 'win'){
+        $('#starsLabel').textContent = 'Estrelas ganhas';
+        $('#starsHint').textContent  = 'Quantas estrelas você subiu nessa vitória.';
+        $('#mStars').value = 1;
+      } else {
+        $('#starsLabel').textContent = 'Estrelas perdidas';
+        $('#starsHint').textContent  = 'Quantas estrelas você perdeu nessa derrota (0 se não perdeu).';
+        $('#mStars').value = 1;
+      }
+    });
+  });
+
+  /* --- Medalha --- */
+  $$('#medalSeg button').forEach(b => {
+    b.addEventListener('click', () => {
+      $$('#medalSeg button').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      currentMedal = b.dataset.val;
+    });
+  });
+
+  /* --- Form partida --- */
+  $('#matchForm').addEventListener('submit', handleMatchSubmit);
+
+  /* --- Form combo --- */
+  $('#comboForm').addEventListener('submit', handleComboSubmit);
+  $('#comboCancel').addEventListener('click', resetComboForm);
+
+  /* --- Config metas --- */
+  $('#cfgDaily').addEventListener('input', syncGoalsFromDaily);
+  $('#cfgSeason').addEventListener('input', syncGoalsFromSeason);
+  $('#cfgRankSave').addEventListener('click', saveBaseRank);
+
+  /* --- Simulador --- */
+  $('#simRange').addEventListener('input', e => {
+    state.simRate = parseInt(e.target.value);
+    saveState();
+    renderSim();
+  });
+
+  /* --- Dados --- */
+  $('#btnExport').addEventListener('click', exportData);
+  $('#btnImport').addEventListener('click', () => $('#fileImport').click());
+  $('#fileImport').addEventListener('change', e => {
+    if (e.target.files[0]) importData(e.target.files[0]);
+    e.target.value = '';
+  });
+  $('#btnReset').addEventListener('click', resetAll);
+
+  /* --- Onboarding --- */
+  $('#obDaily').addEventListener('input', e => {
+    const v = parseFloat(e.target.value);
+    $('#obSeason').value = (v > 0) ? Math.round(v * TOTAL_DAYS) : '';
+  });
+  $('#obSeason').addEventListener('input', e => {
+    const v = parseFloat(e.target.value);
+    $('#obDaily').value = (v > 0) ? +(v / TOTAL_DAYS).toFixed(2) : '';
+  });
+  $('#obStart').addEventListener('click', () => {
+    const d = parseFloat($('#obDaily').value);
+    const s = parseFloat($('#obSeason').value);
+    if (!d || !s){ toast('Preencha a meta diária ou a total', 'err'); return; }
+    state.goals.daily  = d;
+    state.goals.season = Math.round(s);
+    state.onboarded = true;
+    saveState();
+    $('#onboarding').classList.remove('show');
+    bootUI();
+    renderAll();
+    toast('Boa sorte na temporada! 🔥', 'ok');
+  });
+}
+
+/* ------------------------------- INIT ----------------------------------- */
+function init(){
+  bindEvents();
+  $('#mDate').value = toLocalInput(new Date());
+  $('#obDays').textContent = `A temporada tem ${TOTAL_DAYS} dias (01/10 → 01/12).`;
+
+  if (!state.onboarded){
+    $('#onboarding').classList.add('show');
+  }
+
+  bootUI();
+  renderAll();
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
